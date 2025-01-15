@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,19 +21,29 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import qed.interview.android.glimbo.ui.theme.MyPetGlimboTheme
 
-// Task 3
+// Food store activity.
 //
-// Disaster has struck! We've noticed that users are getting more food than they are paying for!
-// If the user presses the "Buy" button quickly they are getting free food items!
-// Fix this top priority issue!
+// Allows the user to purchase food from a list of available goods.
+// The list of food is downloaded from
+//
+// Task 2 - goto StoreEntriesClient.kt
+//
+// Task 3 - food time travel
+// We've noticed that buying two different food items in succession leads to some funky behavior.
+// Steps to reproduce:
+// - buy a food item
+// - quickly buy another, different food item
+// - observe the amount of first food item in backpack increase then decrease
+// Pls fix
 //
 class StoreActivity : ComponentActivity() {
 
@@ -41,18 +52,14 @@ class StoreActivity : ComponentActivity() {
 
         val viewModel: StoreViewModel by viewModels()
 
-        viewModel.loadStoreEntries()
-
         setContent {
             MyPetGlimboTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
+                Scaffold { paddingValues ->
                     StoreView(
-                        money = viewModel.getMoneyState().intValue,
-                        backpack = viewModel.getBackpackState().value,
-                        entries = viewModel.getEntriesState().value,
+                        modifier = Modifier
+                            .padding(paddingValues)
+                            .consumeWindowInsets(paddingValues),
+                        storeState = viewModel.state.collectAsState().value,
                     )
                 }
             }
@@ -73,20 +80,35 @@ class StoreActivity : ComponentActivity() {
 
 @Composable
 private fun StoreView(
-    money: Int,
-    backpack: Map<String, Int>,
-    entries: StoreEntriesState,
+    modifier: Modifier = Modifier,
+    storeState: StoreState,
 ) {
-    Column {
-        StoreHeader(money = money)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        ) {
-            StoreBackpackView(backpack = backpack)
-            Spacer(modifier = Modifier.height(28.dp))
-            StoreEntriesView(entries = entries, money = money)
+    when (storeState) {
+        StoreState.Loading -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        is StoreState.Loaded -> {
+            Column(modifier) {
+                StoreHeader(money = storeState.backpack.money)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    StoreBackpackView(productsOwned = storeState.backpack.productsOwned)
+                    Spacer(modifier = Modifier.height(28.dp))
+                    StoreEntriesView(
+                        entries = storeState.entries,
+                        money = storeState.backpack.money,
+                    )
+                }
+            }
         }
     }
 }
@@ -105,14 +127,14 @@ private fun StoreHeader(money: Int) {
             style = MaterialTheme.typography.headlineMedium,
         )
         Text(
-            text = "$money mooneeys",
+            text = "\$$money",
             style = MaterialTheme.typography.headlineSmall
         )
     }
 }
 
 @Composable
-private fun StoreBackpackView(backpack: Map<String, Int>) {
+private fun StoreBackpackView(productsOwned: Map<String, Int>) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -126,7 +148,7 @@ private fun StoreBackpackView(backpack: Map<String, Int>) {
                 .padding(horizontal = 20.dp, vertical = 10.dp)
                 .fillMaxWidth(),
         ) {
-            if (backpack.isEmpty()) {
+            if (productsOwned.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -137,7 +159,7 @@ private fun StoreBackpackView(backpack: Map<String, Int>) {
                 }
             } else {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    backpack.toSortedMap().entries.forEachIndexed { index, (name, count) ->
+                    productsOwned.toSortedMap().entries.forEachIndexed { index, (name, count) ->
                         if (index != 0) {
                             HorizontalDivider(
                                 modifier = Modifier.fillMaxWidth(),
@@ -149,6 +171,7 @@ private fun StoreBackpackView(backpack: Map<String, Int>) {
                                 .padding(10.dp)
                                 .fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(name)
                             Text(count.toString())
@@ -161,7 +184,7 @@ private fun StoreBackpackView(backpack: Map<String, Int>) {
 }
 
 @Composable
-private fun StoreEntriesView(entries: StoreEntriesState, money: Int) {
+private fun StoreEntriesView(entries: List<StoreEntry>, money: Int) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -175,59 +198,31 @@ private fun StoreEntriesView(entries: StoreEntriesState, money: Int) {
                 .padding(horizontal = 20.dp, vertical = 10.dp)
                 .fillMaxWidth(),
         ) {
-            when (entries) {
-                StoreEntriesState.Loading -> StoreEntriesLoadingView()
-                is StoreEntriesState.Loaded -> StoreEntriesLoadedListView(
-                    entries = entries,
-                    money = money,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun StoreEntriesLoadingView() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Spacer(Modifier.height(20.dp))
-        CircularProgressIndicator()
-        Spacer(Modifier.height(20.dp))
-    }
-}
-
-@Composable
-private fun StoreEntriesLoadedListView(entries: StoreEntriesState.Loaded, money: Int) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        entries.entries.forEachIndexed { index, storeEntry ->
-            if (index != 0) {
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.background,
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+            Column(
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Column {
-                    Text(storeEntry.name)
-                    Text(
-                        text = "${storeEntry.price} mooneeys",
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-                Button(
-                    onClick = storeEntry.buyCallback,
-                    enabled = money >= storeEntry.price,
-                ) {
-                    Text("Buy")
+                entries.forEachIndexed { index, storeEntry ->
+                    if (index != 0) {
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.background,
+                        )
+                    }
+                    Row(
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(storeEntry.name)
+                        Button(
+                            onClick = storeEntry.buyCallback,
+                            enabled = money >= storeEntry.price,
+                        ) {
+                            Text("Buy for \$${storeEntry.price}")
+                        }
+                    }
                 }
             }
         }

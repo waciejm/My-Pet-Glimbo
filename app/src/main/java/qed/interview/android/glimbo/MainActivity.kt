@@ -7,13 +7,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import qed.interview.android.glimbo.gallery.GalleryActivity
 import qed.interview.android.glimbo.hatch.HatchActivity
 import qed.interview.android.glimbo.journal.JournalActivity
 import qed.interview.android.glimbo.store.StoreActivity
@@ -26,23 +29,26 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyPetGlimboTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
+                Scaffold { paddingValues ->
                     Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier
+                            .padding(paddingValues)
+                            .consumeWindowInsets(paddingValues)
+                            .fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Button(onClick = { launchActivity(HatchActivity::class) }) {
-                            Text("Hatch Glimbo")
+                            Text("Hatch activity \uD83E\uDD5A")
                         }
                         Button(onClick = { launchActivity(StoreActivity::class) }) {
-                            Text("Buy Glimbo food")
+                            Text("Store activity \uD83D\uDED2")
+                        }
+                        Button(onClick = { launchActivity(GalleryActivity::class) }) {
+                            Text("Gallery activity \uD83D\uDCF7")
                         }
                         Button(onClick = { launchActivity(JournalActivity::class) }) {
-                            Text("Remember Glimbo \uD83D\uDD6F\uFE0F")
+                            Text("Journal activity \uD83D\uDD6F\uFE0F")
                         }
                     }
                 }

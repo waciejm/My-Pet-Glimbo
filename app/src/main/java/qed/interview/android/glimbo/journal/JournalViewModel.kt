@@ -1,51 +1,36 @@
 package qed.interview.android.glimbo.journal
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 
 class JournalViewModel : ViewModel() {
-    val entries: List<JournalEntry> = ENTRIES
+    val entries: StateFlow<List<JournalEntry>> = MutableStateFlow(
+        listOf(
+            JournalEntry(
+                title = "Time to Say Glimbye",
+                date = LocalDate.of(2024, 4, 28),
+                text = loremIpsum(),
+            ),
+            JournalEntry(
+                title = "A Very Glimberry Christmas",
+                date = LocalDate.of(2023, 12, 24),
+                text = loremIpsum(),
+            ),
+            JournalEntry(
+                title = "It's a Glimberful Life",
+                date = LocalDate.of(2023, 7, 11),
+                text = loremIpsum(),
+            ),
+            JournalEntry(
+                title = "Chasing Glimbo",
+                date = LocalDate.of(2023, 6, 14),
+                text = loremIpsum(),
+            ),
+        ),
+    )
 }
-
-data class JournalEntry(
-    val title: String,
-    val date: LocalDate,
-    val text: String,
-)
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-private val ENTRIES = listOf(
-    JournalEntry(
-        title = "Time to Say Glimbye",
-        date = LocalDate.of(2024, 4, 28),
-        text = loremIpsum(),
-    ),
-    JournalEntry(
-        title = "A Very Glimberry Christmas",
-        date = LocalDate.of(2023, 12, 24),
-        text = loremIpsum(),
-    ),
-    JournalEntry(
-        title = "It's a Glimberful Life",
-        date = LocalDate.of(2023, 7, 11),
-        text = loremIpsum(),
-    ),
-    JournalEntry(
-        title = "Chasing Glimbo",
-        date = LocalDate.of(2023, 6, 14),
-        text = loremIpsum(),
-    ),
-)
 
 private fun loremIpsum() =
     "Lorem ipsum dolor sit amet, " +

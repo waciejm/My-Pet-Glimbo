@@ -2,14 +2,19 @@ package qed.interview.android.glimbo.journal
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import kotlinx.coroutines.flow.StateFlow
+import java.time.LocalDate
 
-// Task 4
+// Journal activity.
 //
-// Oh no! We've been asked to justify why we collect so much data about our users.
-// Fortunately we've come up with a solution! Use the data to generate journal entries
-// so that we can say we have a legitimate reason to store all that data!
-// Implement the Journal UI based on this sketch created by our finest UI designer:
+// Displays a list of journal entries.
+//
+// Task 5 - journal entries UI
+// We want to increase our users attachment to their favorite pet Glimbo.
+// Our designers have cooked up a detailed design for displaying journal entries.
+// Implement a Compose UI for journal entries according to the sketch available at:
 // https://waciejm.github.io/My-Pet-Glimbo/journal-sketch.png
 //
 class JournalActivity : ComponentActivity() {
@@ -18,6 +23,16 @@ class JournalActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val viewModel: JournalViewModel by viewModels()
-        val entries = viewModel.entries
+        val entries: StateFlow<List<JournalEntry>> = viewModel.entries
+
+        setContent {
+            // TODO
+        }
     }
 }
+
+data class JournalEntry(
+    val title: String,
+    val date: LocalDate,
+    val text: String,
+)

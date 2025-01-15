@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyPetGlimbo"
-        tools:targetApi="31">
+        tools:targetApi="35">
 
         <activity
             android:name=".MainActivity"
@@ -30,6 +30,8 @@
         <activity android:name=".hatch.HatchActivity" />
 
         <activity android:name=".store.StoreActivity" />
+
+        <activity android:name=".gallery.GalleryActivity" />
 
         <activity android:name=".journal.JournalActivity" />
 
