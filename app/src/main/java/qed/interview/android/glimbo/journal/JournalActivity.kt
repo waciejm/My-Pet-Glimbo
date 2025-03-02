@@ -5,16 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import kotlinx.coroutines.flow.StateFlow
-import java.time.LocalDate
 
 // Journal activity.
 //
-// Displays a list of journal entries.
-//
-// Task 5 - journal entries UI
-// We want to increase our users attachment to their favorite pet Glimbo.
+// Task 4 - journal entries UI
 // Our designers have cooked up a detailed design for displaying journal entries.
-// Implement a Compose UI for journal entries according to the sketch available at:
+// Implement a UI for journal entries according to the sketch available at:
 // https://waciejm.github.io/My-Pet-Glimbo/journal-sketch.png
 //
 class JournalActivity : ComponentActivity() {
@@ -33,6 +29,6 @@ class JournalActivity : ComponentActivity() {
 
 data class JournalEntry(
     val title: String,
-    val date: LocalDate,
+    val date: String,
     val text: String,
 )

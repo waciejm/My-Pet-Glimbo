@@ -16,9 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import qed.interview.android.glimbo.gallery.GalleryActivity
 import qed.interview.android.glimbo.hatch.HatchActivity
 import qed.interview.android.glimbo.journal.JournalActivity
+import qed.interview.android.glimbo.mine.MineActivity
 import qed.interview.android.glimbo.store.StoreActivity
 import qed.interview.android.glimbo.ui.theme.MyPetGlimboTheme
 import kotlin.reflect.KClass
@@ -44,8 +44,8 @@ class MainActivity : ComponentActivity() {
                         Button(onClick = { launchActivity(StoreActivity::class) }) {
                             Text("Store activity \uD83D\uDED2")
                         }
-                        Button(onClick = { launchActivity(GalleryActivity::class) }) {
-                            Text("Gallery activity \uD83D\uDCF7")
+                        Button(onClick = { launchActivity(MineActivity::class) }) {
+                            Text("Mine activity \u26CF\uFE0F")
                         }
                         Button(onClick = { launchActivity(JournalActivity::class) }) {
                             Text("Journal activity \uD83D\uDD6F\uFE0F")

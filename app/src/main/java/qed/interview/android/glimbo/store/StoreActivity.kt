@@ -24,26 +24,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import qed.interview.android.glimbo.ui.theme.MyPetGlimboTheme
 
 // Food store activity.
 //
-// Allows the user to purchase food from a list of available goods.
-// The list of food is downloaded from
+// Task 2 - downloading store entries from backend
 //
-// Task 2 - goto StoreEntriesClient.kt
-//
-// Task 3 - food time travel
-// We've noticed that buying two different food items in succession leads to some funky behavior.
-// Steps to reproduce:
-// - buy a food item
-// - quickly buy another, different food item
-// - observe the amount of first food item in backpack increase then decrease
-// Pls fix
+// Our backend team has finally finished implementing the store entries API.
+// Replace mocked entries in StoreEntriesClient with entries downloaded from the following URL:
+// https://waciejm.github.io/My-Pet-Glimbo/store/entries.json
 //
 class StoreActivity : ComponentActivity() {
 
@@ -59,7 +52,7 @@ class StoreActivity : ComponentActivity() {
                         modifier = Modifier
                             .padding(paddingValues)
                             .consumeWindowInsets(paddingValues),
-                        storeState = viewModel.state.collectAsState().value,
+                        storeState = viewModel.state.collectAsStateWithLifecycle().value,
                     )
                 }
             }
@@ -78,6 +71,15 @@ class StoreActivity : ComponentActivity() {
 //
 //
 
+sealed interface StoreState {
+    data object Loading: StoreState
+
+    data class Loaded(
+        val backpack: Backpack,
+        val entries: List<StoreEntry>,
+    ): StoreState
+}
+
 @Composable
 private fun StoreView(
     modifier: Modifier = Modifier,
@@ -86,7 +88,7 @@ private fun StoreView(
     when (storeState) {
         StoreState.Loading -> {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -94,7 +96,7 @@ private fun StoreView(
             }
         }
         is StoreState.Loaded -> {
-            Column(modifier) {
+            Column(modifier = modifier) {
                 StoreHeader(money = storeState.backpack.money)
                 Column(
                     modifier = Modifier

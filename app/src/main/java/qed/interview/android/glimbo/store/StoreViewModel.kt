@@ -2,7 +2,6 @@ package qed.interview.android.glimbo.store
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -11,19 +10,18 @@ class StoreViewModel : ViewModel() {
 
     private val storeEntriesClient = StoreEntriesClient()
 
-    private val storePurchaseClient = StorePurchaseClient()
-
     private val storeState = MutableStateFlow<StoreState>(StoreState.Loading)
     val state: StateFlow<StoreState>
         get() = storeState
 
     init {
         viewModelScope.launch {
-            val backpack = async {
-                storePurchaseClient.getCurrentBackpack()
-            }
-            val entries = async {
-                storeEntriesClient
+            storeState.value = StoreState.Loaded(
+                backpack = Backpack(
+                    money = 100,
+                    productsOwned = mapOf(),
+                ),
+                entries = storeEntriesClient
                     .getStoreEntries()
                     .map {
                         StoreEntry(
@@ -31,11 +29,7 @@ class StoreViewModel : ViewModel() {
                             price = it.price,
                             buyCallback = { onBuyStoreEntry(name = it.name, price = it.price) },
                         )
-                    }
-            }
-            storeState.value = StoreState.Loaded(
-                backpack = backpack.await(),
-                entries = entries.await(),
+                    },
             )
         }
     }
@@ -45,7 +39,12 @@ class StoreViewModel : ViewModel() {
             StoreState.Loading -> {}
             is StoreState.Loaded -> {
                 storeState.value = currentState.copy(
-                    backpack = storePurchaseClient.attemptPurchase(name, price),
+                    backpack = Backpack(
+                        money = currentState.backpack.money - price,
+                        productsOwned = currentState.backpack.productsOwned.toMutableMap().apply {
+                            this[name] = (this[name] ?: 0) + 1
+                        }
+                    ),
                 )
             }
         }
@@ -63,12 +62,3 @@ data class StoreEntry(
     val price: Int,
     val buyCallback: () -> Unit,
 )
-
-sealed interface StoreState {
-    data object Loading: StoreState
-
-    data class Loaded(
-        val backpack: Backpack,
-        val entries: List<StoreEntry>,
-    ): StoreState
-}

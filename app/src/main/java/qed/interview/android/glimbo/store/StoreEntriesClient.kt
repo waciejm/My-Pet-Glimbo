@@ -4,11 +4,6 @@ import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration.Companion.seconds
 
-// Task 2 - loading entries from backend
-// Our backend team has finally finished implementing the store entries API.
-// Replace these mocked entries with entries downloaded from the following URL:
-// https://waciejm.github.io/My-Pet-Glimbo/store/entries.json
-//
 class StoreEntriesClient {
 
     suspend fun getStoreEntries(): List<Entry> {

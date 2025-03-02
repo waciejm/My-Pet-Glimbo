@@ -10,22 +10,22 @@ class JournalViewModel : ViewModel() {
         listOf(
             JournalEntry(
                 title = "Time to Say Glimbye",
-                date = LocalDate.of(2024, 4, 28),
+                date = LocalDate.of(2024, 4, 28).toString(),
                 text = loremIpsum(),
             ),
             JournalEntry(
                 title = "A Very Glimberry Christmas",
-                date = LocalDate.of(2023, 12, 24),
+                date = LocalDate.of(2023, 12, 24).toString(),
                 text = loremIpsum(),
             ),
             JournalEntry(
                 title = "It's a Glimberful Life",
-                date = LocalDate.of(2023, 7, 11),
+                date = LocalDate.of(2023, 7, 11).toString(),
                 text = loremIpsum(),
             ),
             JournalEntry(
                 title = "Chasing Glimbo",
-                date = LocalDate.of(2023, 6, 14),
+                date = LocalDate.of(2023, 6, 14).toString(),
                 text = loremIpsum(),
             ),
         ),

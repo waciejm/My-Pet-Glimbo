@@ -31,7 +31,7 @@
 
         <activity android:name=".store.StoreActivity" />
 
-        <activity android:name=".gallery.GalleryActivity" />
+        <activity android:name=".mine.MineActivity" />
 
         <activity android:name=".journal.JournalActivity" />
 
