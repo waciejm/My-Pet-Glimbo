@@ -17,11 +17,21 @@ class StoreViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            storeState.value = StoreState.Loaded(
-                backpack = Backpack(money = 100, productsOwned = mapOf()),
-                entries = storeEntriesClient
-                    .getStoreEntries()
-                    .map { StoreEntry(name = it.name, price = it.price) },
+            storeState.value = storeEntriesClient.getStoreEntries().fold(
+                onSuccess = { entries ->
+                    StoreState.Loaded(
+                        backpack = Backpack(money = 100, productsOwned = mapOf()),
+                        entries = entries.map {
+                            StoreEntry(
+                                name = it.name,
+                                price = it.price,
+                            )
+                        },
+                    )
+                },
+                onFailure = {
+                    StoreState.Error
+                }
             )
         }
     }

@@ -40,6 +40,11 @@ import qed.interview.android.glimbo.ui.theme.setUpEdgeToEdgeOnCreate
 // Replace mocked getStoreEntries in StoreEntriesClient with downloading them from
 // the following URL: https://waciejm.github.io/My-Pet-Glimbo/store/entries.json
 //
+// Solution:
+// 1. Use e.g. retrofit to download the entries JSON in StoreEntriesClient.
+// 2. Deserialize the downloaded JSON e.g. using retrofit KotlinX Serialization Converter Factory.
+// 3. Handle network and data errors (but remember not to catch cancellation exceptions).
+//
 class StoreActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

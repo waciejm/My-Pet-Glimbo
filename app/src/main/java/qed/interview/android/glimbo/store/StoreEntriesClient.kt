@@ -1,29 +1,36 @@
 package qed.interview.android.glimbo.store
 
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.Serializable
-import kotlin.time.Duration.Companion.seconds
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
+import retrofit2.Retrofit
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.http.GET
 
 class StoreEntriesClient {
 
-    suspend fun getStoreEntries(): List<Entry> {
-        // mock request
-        delay(1.seconds)
-        return listOf(
-            Entry(
-                name = "food1",
-                price = 1,
-            ),
-            Entry(
-                name = "food2",
-                price = 2,
-            ),
-            Entry(
-                name = "food3",
-                price = 3,
-            ),
-        )
+    private val retrofit = Retrofit.Builder()
+        .baseUrl("https://waciejm.github.io/My-Pet-Glimbo/")
+        .addConverterFactory(Json.asConverterFactory("application/json; charset=utf-8".toMediaType()))
+        .build()
+
+    private val service = retrofit.create(StoreEntriesService::class.java)
+
+    suspend fun getStoreEntries(): Result<List<Entry>> {
+        return try {
+            Result.success(service.getStoreEntries())
+        } catch (e: Exception) {
+            currentCoroutineContext().ensureActive()
+            Result.failure(e)
+        }
     }
+}
+
+interface StoreEntriesService {
+    @GET("store/entries.json")
+    suspend fun getStoreEntries(): List<Entry>
 }
 
 @Serializable
