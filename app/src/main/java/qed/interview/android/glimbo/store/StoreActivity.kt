@@ -29,19 +29,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import qed.interview.android.glimbo.ui.theme.MyPetGlimboTheme
+import qed.interview.android.glimbo.ui.theme.setUpEdgeToEdgeOnCreate
 
 // Food store activity.
 //
 // Task 2 - downloading store entries from backend
 //
 // Our backend team has finally finished implementing the store entries API.
-// Replace mocked entries in StoreEntriesClient with entries downloaded from the following URL:
-// https://waciejm.github.io/My-Pet-Glimbo/store/entries.json
+//
+// Replace mocked getStoreEntries in StoreEntriesClient with downloading them from
+// the following URL: https://waciejm.github.io/My-Pet-Glimbo/store/entries.json
 //
 class StoreActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setUpEdgeToEdgeOnCreate()
 
         val viewModel: StoreViewModel by viewModels()
 
@@ -53,6 +57,7 @@ class StoreActivity : ComponentActivity() {
                             .padding(paddingValues)
                             .consumeWindowInsets(paddingValues),
                         storeState = viewModel.state.collectAsStateWithLifecycle().value,
+                        buyCallback = viewModel::buy,
                     )
                 }
             }
@@ -60,30 +65,11 @@ class StoreActivity : ComponentActivity() {
     }
 }
 
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-
-sealed interface StoreState {
-    data object Loading: StoreState
-
-    data class Loaded(
-        val backpack: Backpack,
-        val entries: List<StoreEntry>,
-    ): StoreState
-}
-
 @Composable
 private fun StoreView(
     modifier: Modifier = Modifier,
     storeState: StoreState,
+    buyCallback: (String) -> Unit,
 ) {
     when (storeState) {
         StoreState.Loading -> {
@@ -93,6 +79,15 @@ private fun StoreView(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 CircularProgressIndicator()
+            }
+        }
+        StoreState.Error -> {
+            Column(
+                modifier = modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("Failed to load store entries")
             }
         }
         is StoreState.Loaded -> {
@@ -108,6 +103,7 @@ private fun StoreView(
                     StoreEntriesView(
                         entries = storeState.entries,
                         money = storeState.backpack.money,
+                        buyCallback = buyCallback,
                     )
                 }
             }
@@ -186,7 +182,11 @@ private fun StoreBackpackView(productsOwned: Map<String, Int>) {
 }
 
 @Composable
-private fun StoreEntriesView(entries: List<StoreEntry>, money: Int) {
+private fun StoreEntriesView(
+    entries: List<StoreEntry>,
+    money: Int,
+    buyCallback: (String) -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -219,7 +219,7 @@ private fun StoreEntriesView(entries: List<StoreEntry>, money: Int) {
                     ) {
                         Text(storeEntry.name)
                         Button(
-                            onClick = storeEntry.buyCallback,
+                            onClick = { buyCallback(storeEntry.name) },
                             enabled = money >= storeEntry.price,
                         ) {
                             Text("Buy for \$${storeEntry.price}")

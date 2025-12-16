@@ -32,6 +32,12 @@ class JournalViewModel : ViewModel() {
     )
 }
 
+data class JournalEntry(
+    val title: String,
+    val date: String,
+    val text: String,
+)
+
 private fun loremIpsum() =
     "Lorem ipsum dolor sit amet, " +
     "consectetur adipiscing elit, " +

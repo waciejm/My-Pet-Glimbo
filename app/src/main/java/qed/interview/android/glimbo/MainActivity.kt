@@ -21,12 +21,16 @@ import qed.interview.android.glimbo.journal.JournalActivity
 import qed.interview.android.glimbo.mine.MineActivity
 import qed.interview.android.glimbo.store.StoreActivity
 import qed.interview.android.glimbo.ui.theme.MyPetGlimboTheme
+import qed.interview.android.glimbo.ui.theme.setUpEdgeToEdgeOnCreate
 import kotlin.reflect.KClass
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setUpEdgeToEdgeOnCreate()
+
         setContent {
             MyPetGlimboTheme {
                 Scaffold { paddingValues ->

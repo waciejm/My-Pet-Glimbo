@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.LongState
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import qed.interview.android.glimbo.R
 import qed.interview.android.glimbo.ui.theme.MyPetGlimboTheme
+import qed.interview.android.glimbo.ui.theme.setUpEdgeToEdgeOnCreate
 import kotlin.time.ComparableTimeMark
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
@@ -35,7 +37,9 @@ import kotlin.time.TimeSource
 // Glimbo egg hatching activity.
 //
 // Task 1 - timer reset
+//
 // We've noticed that rotating the phone causes egg hatching to reset.
+//
 // Pls fix so that does not happen as long as the activity is open.
 //
 class HatchActivity : ComponentActivity() {
@@ -44,6 +48,8 @@ class HatchActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setUpEdgeToEdgeOnCreate()
 
         setContent {
             MyPetGlimboTheme {
@@ -72,17 +78,6 @@ class HatchActivity : ComponentActivity() {
         }
     }
 }
-
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 
 sealed interface HatchState {
     data object NotHatching: HatchState
@@ -120,24 +115,8 @@ private fun HatchingView(
                     contentDescription = null,
                     modifier = Modifier.size(128.dp),
                 )
-
-                val displayedSecondsLeft = remember { mutableLongStateOf(0) }
-                LaunchedEffect(state) {
-                    val initDurationLeft = state.hatchEnd - TimeSource.Monotonic.markNow()
-                    var wholeSecondsLeft = initDurationLeft.inWholeSeconds
-                    displayedSecondsLeft.longValue = wholeSecondsLeft + 1
-
-                    while (wholeSecondsLeft > 0) {
-                        val durationLeft = state.hatchEnd - TimeSource.Monotonic.markNow()
-                        val untilWholeSecondsLeft = durationLeft - wholeSecondsLeft.seconds
-
-                        delay(untilWholeSecondsLeft)
-                        displayedSecondsLeft.longValue = wholeSecondsLeft
-                        wholeSecondsLeft -= 1
-                    }
-                }
-
-                Text(text = "Glimbo will hatch in ${displayedSecondsLeft.longValue} seconds...")
+                val secondsLeft = secondsUntilTimeMark(end = state.hatchEnd)
+                Text(text = "Glimbo will hatch in ${secondsLeft.longValue} seconds...")
             }
 
             HatchState.Hatched -> {
@@ -150,4 +129,26 @@ private fun HatchingView(
             }
         }
     }
+}
+
+@Composable
+private fun secondsUntilTimeMark(end: ComparableTimeMark): LongState {
+    val displaySecondsLeft = remember { mutableLongStateOf(0) }
+
+    LaunchedEffect(end) {
+        val initDurationLeft = end - TimeSource.Monotonic.markNow()
+        var wholeSecondsLeft = initDurationLeft.inWholeSeconds
+        displaySecondsLeft.longValue = wholeSecondsLeft + 1
+
+        while (wholeSecondsLeft > 0) {
+            val durationLeft = end - TimeSource.Monotonic.markNow()
+            val untilWholeSecondsLeft = durationLeft - wholeSecondsLeft.seconds
+
+            delay(untilWholeSecondsLeft)
+            displaySecondsLeft.longValue = wholeSecondsLeft
+            wholeSecondsLeft -= 1
+        }
+    }
+
+    return displaySecondsLeft
 }

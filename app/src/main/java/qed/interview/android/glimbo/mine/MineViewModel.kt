@@ -1,52 +1,61 @@
 package qed.interview.android.glimbo.mine
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 class MineViewModel : ViewModel() {
-    val state = MineState(notifications = mutableStateListOf())
+
+    private val _notifications = MutableStateFlow<List<MineNotification>>(listOf())
+
+    val notifications: StateFlow<List<MineNotification>>
+        get() = _notifications.asStateFlow()
 
     init {
         viewModelScope.launch {
-            makeFakeMine().mine().collect { notification ->
-                state.notifications.add(notification)
+            mockMineDiamonds().collect { notification ->
+                addNotification(notification)
                 viewModelScope.launch {
                     delay(5.seconds)
-                    state.notifications.removeAt(0)
+                    removeNotification(notification)
                 }
             }
         }
     }
+
+    private fun addNotification(notification: MineNotification) {
+        _notifications.value += notification
+    }
+
+    private fun removeNotification(notification: MineNotification) {
+        _notifications.value -= notification
+    }
 }
 
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
+data class MineNotification(
+    val timestamp: Instant,
+    val message: String,
+)
 
-interface Mine {
-    suspend fun mine(): Flow<String>
-}
-
-fun makeFakeMine(): Mine = object : Mine {
-    override suspend fun mine() = flow {
-        while (true) {
-            delay(2.seconds)
-            val diamonds = Random.nextInt().mod(3) + 1
-            emit("mined $diamonds diamond")
-        }
+fun mockMineDiamonds(): Flow<MineNotification> = flow {
+    while (true) {
+        delay(2.seconds)
+        val diamonds = Random.nextInt().mod(3) + 1
+        emit(
+            MineNotification(
+                timestamp = Clock.System.now(),
+                message = "mined $diamonds diamond",
+            ),
+        )
     }
 }
