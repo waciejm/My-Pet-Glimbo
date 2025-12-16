@@ -2,12 +2,14 @@ package qed.interview.android.glimbo.mine
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -15,6 +17,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class MineViewModel : ViewModel() {
+
+    private val notificationsQueue = Channel<MineNotification>(capacity = Channel.UNLIMITED)
 
     private val _notifications = MutableStateFlow<List<MineNotification>>(listOf())
 
@@ -24,11 +28,17 @@ class MineViewModel : ViewModel() {
     init {
         viewModelScope.launch {
             mockMineDiamonds().collect { notification ->
-                addNotification(notification)
-                viewModelScope.launch {
-                    delay(5.seconds)
-                    removeNotification(notification)
-                }
+                notificationsQueue.send(notification)
+            }
+        }
+    }
+
+    suspend fun consumeNotifications() {
+        notificationsQueue.receiveAsFlow().collect { notification ->
+            addNotification(notification)
+            viewModelScope.launch {
+                delay(5.seconds)
+                removeNotification(notification)
             }
         }
     }

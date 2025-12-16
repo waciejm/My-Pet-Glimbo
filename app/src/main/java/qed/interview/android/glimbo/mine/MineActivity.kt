@@ -27,7 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import qed.interview.android.glimbo.R
 import qed.interview.android.glimbo.ui.theme.MyPetGlimboTheme
 import qed.interview.android.glimbo.ui.theme.setUpEdgeToEdgeOnCreate
@@ -47,6 +51,11 @@ import qed.interview.android.glimbo.ui.theme.setUpEdgeToEdgeOnCreate
 //
 // We can assume that the screen being on is equivalent to Activity being STARTED.
 //
+// Solution:
+// 1. Put new notifications in some sort of queue instead of consuming immediately.
+// 2. Consume notifications from queue only if activity is STARTED state,
+//    e.g. by launching coroutine in Activity.lifecycleScope and using repeatOnLifecycle(...)
+//
 class MineActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,6 +64,12 @@ class MineActivity : ComponentActivity() {
         setUpEdgeToEdgeOnCreate()
 
         val viewModel by viewModels<MineViewModel>()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.consumeNotifications()
+            }
+        }
 
         setContent {
             MyPetGlimboTheme {
