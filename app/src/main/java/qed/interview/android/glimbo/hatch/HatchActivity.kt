@@ -3,6 +3,7 @@ package qed.interview.android.glimbo.hatch
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,10 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import qed.interview.android.glimbo.R
 import qed.interview.android.glimbo.ui.theme.MyPetGlimboTheme
 import qed.interview.android.glimbo.ui.theme.setUpEdgeToEdgeOnCreate
@@ -42,12 +40,16 @@ import kotlin.time.TimeSource
 //
 // Pls fix so that does not happen as long as the activity is open.
 //
+// Solution:
+// 1. Move state to ViewModel so that it doesn't reset on Activity recreation.
+// 2. Launch the hatching timer coroutine in ViewModel scope so it doesn't get cancelled on Activity recreation.
+//
 class HatchActivity : ComponentActivity() {
-
-    private val hatchState = MutableStateFlow<HatchState>(HatchState.NotHatching)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val viewModel by viewModels<HatchViewModel>()
 
         setUpEdgeToEdgeOnCreate()
 
@@ -58,23 +60,11 @@ class HatchActivity : ComponentActivity() {
                         modifier = Modifier
                             .padding(paddingValues)
                             .consumeWindowInsets(paddingValues),
-                        state = hatchState.collectAsStateWithLifecycle().value,
-                        onStartHatching = ::onStartHatching,
+                        state = viewModel.state.collectAsStateWithLifecycle().value,
+                        onStartHatching = viewModel::onStartHatching,
                     )
                 }
             }
-        }
-    }
-
-    private fun onStartHatching() {
-        val hatchTime = 5.seconds
-        val hatchEnd = TimeSource.Monotonic.markNow() + hatchTime
-
-        hatchState.value = HatchState.Hatching(hatchEnd = hatchEnd)
-
-        lifecycleScope.launch {
-            delay(hatchTime)
-            hatchState.value = HatchState.Hatched
         }
     }
 }
